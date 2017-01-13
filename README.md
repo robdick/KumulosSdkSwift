@@ -2,7 +2,7 @@
 
 Kumulos provides tools to build and host backend storage for apps, send push notifications, view audience and behavior analytics, and report on adoption, engagement and performance.
 
-To get started, add a dependencey to your `Cartfile`:
+To get started, add a dependency to your `Cartfile`:
 
 ```
 github "Kumulos/KumulosSdkSwift" ~> 1.1
