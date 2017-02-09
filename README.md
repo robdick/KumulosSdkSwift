@@ -5,7 +5,7 @@ Kumulos provides tools to build and host backend storage for apps, send push not
 To get started, add a dependency to your `Cartfile`:
 
 ```
-github "Kumulos/KumulosSdkSwift" ~> 1.1
+github "Kumulos/KumulosSdkSwift" ~> 1.2
 ```
 
 For more information on integrating the Swift SDK with your project, please see the [Kumulos Swift integration guide](https://docs.kumulos.com/integration/swift).
