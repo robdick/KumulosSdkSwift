@@ -38,6 +38,11 @@ open class Kumulos {
             return instance!
         }
     }
+    
+    public static func getInstance() -> Kumulos
+    {
+        return sharedInstance;
+    }
 
     fileprivate(set) var apiKey: String
     fileprivate(set) var secretKey: String
@@ -144,11 +149,21 @@ open class Kumulos {
     }
 
     internal func makeNetworkRequest(_ method: Alamofire.HTTPMethod, url: URLConvertible, parameters: [String : AnyObject]?) -> Alamofire.DataRequest {
-        let headers: HTTPHeaders = [
+        var requestHeaders: HTTPHeaders = [
             "Authorization": getAuth()
         ];
-
-        return Alamofire.request(url, method: method, parameters: parameters, headers: headers)
+        
+        return Alamofire.request(url, method: method, parameters: parameters, headers: requestHeaders)
+    }
+    
+    internal func makeJsonNetworkRequest(_ method: Alamofire.HTTPMethod, url: URLConvertible, parameters: [String : AnyObject]?) -> Alamofire.DataRequest {
+        var requestHeaders: HTTPHeaders = [
+            "Authorization": getAuth(),
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ];
+        
+        return Alamofire.request(url, method: method, parameters: parameters, encoding: JSONEncoding.default, headers: requestHeaders)
     }
 
     fileprivate func getAuth()-> String {
