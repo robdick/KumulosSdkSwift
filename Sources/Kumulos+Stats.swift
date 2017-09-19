@@ -5,6 +5,7 @@
 
 import Foundation
 import Alamofire
+import CoreLocation
 
 #if os(iOS) || os(watchOS) || os(tvOS)
     import UIKit
@@ -58,9 +59,20 @@ struct Platform {
     }()
 }
 
-internal extension Kumulos{
+public extension Kumulos{
 
-    func sendDeviceInformation() {
+    public static func sendLocationUpdate(location: CLLocation) {
+        let url = "\(sharedInstance.baseStatsUrl)app-installs/\(Kumulos.installId)/location"
+        
+        let parameters = [
+            "lat" : location.coordinate.latitude,
+            "lng" : location.coordinate.longitude
+        ]
+        
+        _ = sharedInstance.makeNetworkRequest(.put, url: url, parameters: parameters as [String: AnyObject])
+    }
+    
+    internal func sendDeviceInformation() {
 
         var target = TargetType.targetTypeRelease
 
@@ -70,12 +82,13 @@ internal extension Kumulos{
         #endif
 
         var app = [String : AnyObject]()
+        app["bundle"] = Bundle.main.infoDictionary!["CFBundleIdentifier"] as AnyObject?
         app["version"] = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject?
         app["target"] = target.rawValue as AnyObject?
 
 
         var sdk = [String : AnyObject]()
-        sdk["id"] = SDKTypeID.sdkTypeObjC.rawValue
+        sdk["id"] = SDKTypeID.sdkTypeSwift.rawValue
 
         let frameworkBundle = Bundle(for: Kumulos.self)
         let sdkVersion = frameworkBundle.infoDictionary!["CFBundleShortVersionString"]
@@ -110,7 +123,10 @@ internal extension Kumulos{
             os["version"] = UIDevice.current.systemVersion as AnyObject?
         }
 
-
+        if (NSLocale.preferredLanguages.count >= 1) {
+            device["locale"] = NSLocale.preferredLanguages[0] as AnyObject
+        }
+        
         device["isSimulator"] = Platform.isSimulator as AnyObject?
 
         let finalParameters = [
