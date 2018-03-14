@@ -53,9 +53,8 @@ public extension Kumulos{
         let iosTokenType = getTokenType()
 
         let parameters = ["token" : token, "type" : sharedInstance.pushNotificationDeviceType, "iosTokenType" : iosTokenType] as [String : Any]
-        let url =  "\(sharedInstance.basePushUrl)app-installs/\(Kumulos.installId)/push-token"
-
-        _ = sharedInstance.makeNetworkRequest(.put, url: url, parameters: parameters as [String : AnyObject])
+        
+        Kumulos.trackEvent(eventType: KumulosEvent.PUSH_DEVICE_REGISTER, properties: parameters as [String : AnyObject], immediateFlush: true)
     }
 
     /**
@@ -68,9 +67,7 @@ public extension Kumulos{
         if let custom = notification["custom"] as? [String:AnyObject], let id = custom["i"]
         {
             let parameters = ["id" : id]
-            let url = "\(sharedInstance.basePushUrl)app-installs/\(Kumulos.installId)/opens"
-
-            _ = sharedInstance.makeNetworkRequest(.post, url: url, parameters: parameters)
+            Kumulos.trackEvent(eventType: KumulosEvent.PUSH_OPEN_TRACK, properties: parameters)
         }
     }
 
