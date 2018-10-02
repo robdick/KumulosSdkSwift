@@ -127,7 +127,7 @@ open class Kumulos {
 
         instance = Kumulos(config: config)
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global().async {
             instance!.sendDeviceInformation()
         }
         
