@@ -57,9 +57,10 @@ class SessionIdleTimer {
 }
 
 class KSEventModel : NSManagedObject {
-    @NSManaged var uuid : String?
-    @NSManaged var happenedAt : NSNumber?
-    @NSManaged var eventType : String?
+    @NSManaged var uuid : String
+    @NSManaged var userIdentifier : String
+    @NSManaged var happenedAt : NSNumber
+    @NSManaged var eventType : String
     @NSManaged var properties : Data?
 }
 
@@ -149,6 +150,7 @@ class AnalyticsHelper {
             event.uuid = UUID().uuidString.lowercased()
             event.happenedAt = NSNumber(value: Int64(atTime.timeIntervalSince1970 * 1000))
             event.eventType = eventType
+            event.userIdentifier = Kumulos.currentUserIdentifier
 
             if properties != nil {
                 let propsJson = try? JSONSerialization.data(withJSONObject: properties as Any, options: JSONSerialization.WritingOptions(rawValue: 0))
@@ -208,7 +210,8 @@ class AnalyticsHelper {
                 "type": event.eventType,
                 "uuid": event.uuid,
                 "timestamp": event.happenedAt,
-                "data": jsonProps
+                "data": jsonProps,
+                "userId": event.userIdentifier
             ])
             eventIds.append(event.objectID)
         }
@@ -357,6 +360,12 @@ class AnalyticsHelper {
         uuidProp.attributeType = .stringAttributeType
         uuidProp.isOptional = false
         eventProps.append(uuidProp);
+
+        let userIdProp = NSAttributeDescription()
+        userIdProp.name = "userIdentifier"
+        userIdProp.attributeType = .stringAttributeType
+        userIdProp.isOptional = true
+        eventProps.append(userIdProp);
 
         eventEntity.properties = eventProps
         model.entities = [eventEntity]
