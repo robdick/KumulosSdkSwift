@@ -22,7 +22,7 @@ Add the following line to your `Cartfile`:
 github "Kumulos/KumulosSdkSwift" ~> 2.4
 ```
 
-Run `carthage update` to install your dependencies then follow the [Carthage integration steps](https://github.com/Carthage/Carthage#getting-started) to link the framework with your project.
+Run `TOOLCHAINS=com.apple.dt.toolchain.Swift_3_0 carthage update` to install your dependencies then follow the [Carthage integration steps](https://github.com/Carthage/Carthage#getting-started) to link the framework with your project.
 
 Please also ensure you link your project against:
 
