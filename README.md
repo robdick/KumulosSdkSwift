@@ -9,7 +9,7 @@ Select an installation method below to get started.
 Add the following line to your app's target in your `Podfile`:
 
 ```
-pod 'KumulosSdkSwift', '~> 4.0'
+pod 'KumulosSdkSwift', '~> 5.0'
 ```
 
 Run `pod install` to install your dependencies.
@@ -19,7 +19,7 @@ Run `pod install` to install your dependencies.
 Add the following line to your `Cartfile`:
 
 ```
-github "Kumulos/KumulosSdkSwift" ~> 4.0
+github "Kumulos/KumulosSdkSwift" ~> 5.0
 ```
 
 Run `carthage update` to install your dependencies then follow the [Carthage integration steps](https://github.com/Carthage/Carthage#getting-started) to link the framework with your project.
@@ -55,11 +55,12 @@ This project is licensed under the MIT license with portions licensed under the 
 ## Requirements
 
 -   iOS9+
--   Swift4.2
+-   Swift5.0
 
 ## Swift Version Support
 
 | Swift Version | SDK Version |
 | ------------- | ----------- |
 | 3.0           | 2.x         |
-| 4.2           | 3.x         |
+| 4.2           | 4.x         |
+| 5.0           | 5.x         |
