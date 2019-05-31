@@ -7,23 +7,6 @@
 
 import Foundation
 import CoreData
-import Alamofire
-
-struct EventsParameterEncoding : ParameterEncoding {
-    
-    func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
-        var urlRequest = try urlRequest.asURLRequest()
-        guard let events = parameters?["events"] else {
-            return urlRequest
-        }
-        
-        let data = try JSONSerialization.data(withJSONObject: events, options: [])
-
-        urlRequest.httpBody = data
-        
-        return urlRequest
-    }
-}
 
 class SessionIdleTimer {
     private let helper : AnalyticsHelper
@@ -215,27 +198,20 @@ class AnalyticsHelper {
             ])
             eventIds.append(event.objectID)
         }
-        
-        let url = "\(kumulos.baseEventsUrl)/app-installs/\(Kumulos.installId)/events"
-        
-        let request = kumulos.makeJsonNetworkRequest(.post, url: url, parameters: ["events": data], encoding: EventsParameterEncoding())
-        
-        request.validate(statusCode: 200..<300).responseJSON { response in
-            switch response.result {
 
-            case .success:
-                if let err = self.pruneEventsBatch(eventIds) {
-                    print("Failed to prune events batch: " + err.localizedDescription)
-                    return
-                }
-                self.syncEvents()
+        let path = "/v1/app-installs/\(Kumulos.installId)/events"
 
-            case .failure:
-                // Failed so assume will be retried some other time
-                if self.bgTask != UIBackgroundTaskIdentifier.invalid {
-                    UIApplication.shared.endBackgroundTask(convertToUIBackgroundTaskIdentifier(self.bgTask.rawValue))
-                    self.bgTask = UIBackgroundTaskIdentifier.invalid
-                }
+        kumulos.eventsHttpClient.sendRequest(.POST, toPath: path, data: data, onSuccess: { (response, data) in
+            if let err = self.pruneEventsBatch(eventIds) {
+                print("Failed to prune events batch: " + err.localizedDescription)
+                return
+            }
+            self.syncEvents()
+        }) { (response, error) in
+            // Failed so assume will be retried some other time
+            if self.bgTask != UIBackgroundTaskIdentifier.invalid {
+                UIApplication.shared.endBackgroundTask(convertToUIBackgroundTaskIdentifier(self.bgTask.rawValue))
+                self.bgTask = UIBackgroundTaskIdentifier.invalid
             }
         }
     }
