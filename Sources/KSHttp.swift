@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum KSHttpError : Error {
+    case responseCastingError
+    case badStatusCode
+}
+
 typealias KSHttpSuccessBlock = (_ response:HTTPURLResponse?, _ decodedBody:Any?) -> Void
 typealias KSHttpFailureBlock = (_ response:HTTPURLResponse?, _ error:Error?) -> Void
 
@@ -138,8 +143,7 @@ internal class KSHttpClient {
     fileprivate func sendRequest(request:URLRequest, onSuccess:@escaping KSHttpSuccessBlock, onFailure:@escaping KSHttpFailureBlock) -> URLSessionDataTask {
         let task = urlSession.dataTask(with: request) { (data, response, error) in
             guard let httpResponse = response as? HTTPURLResponse else {
-                //               TODO let castError = Error()
-                onFailure(nil, nil)
+                onFailure(nil, KSHttpError.responseCastingError)
                 return
             }
 
@@ -155,8 +159,7 @@ internal class KSHttpClient {
             }
 
             if httpResponse.statusCode > 299 {
-                // TODO error
-                onFailure(httpResponse, nil)
+                onFailure(httpResponse, KSHttpError.badStatusCode)
                 return;
             }
 
