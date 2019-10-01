@@ -63,4 +63,4 @@ This project is licensed under the MIT license with portions licensed under the 
 | ------------- | ----------- |
 | 3.0           | 2.x         |
 | 4.2           | 4.x         |
-| 5.0           | 5.x+        |
+| 5.0           | 5.x, 6.x    |
