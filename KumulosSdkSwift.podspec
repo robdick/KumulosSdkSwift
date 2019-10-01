@@ -17,6 +17,4 @@ Pod::Spec.new do |s|
   s.preserve_path = 'upload_dsyms.sh'
 
   s.prepare_command = 'chmod +x upload_dsyms.sh'
-
-  s.dependency "KSCrash", "~> 1.15.19"
 end

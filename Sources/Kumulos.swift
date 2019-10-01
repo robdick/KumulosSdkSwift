@@ -176,10 +176,6 @@ open class Kumulos {
         DispatchQueue.global().async {
             instance!.sendDeviceInformation()
         }
-        
-        if (config.enableCrash) {
-            instance!.trackAndReportCrashes()
-        }
     }
 
     fileprivate init(config: KSConfig) {

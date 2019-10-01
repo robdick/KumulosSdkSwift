@@ -22,14 +22,8 @@
 		129372092006355E00EBC8F4 /* Kumulos+Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129372082006355E00EBC8F4 /* Kumulos+Analytics.swift */; };
 		1293720B2006378D00EBC8F4 /* AnalyticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1293720A2006378D00EBC8F4 /* AnalyticsHelper.swift */; };
 		12A6BD871FCD7A7500D59D37 /* KSConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12A6BD861FCD7A7400D59D37 /* KSConfig.swift */; };
-		12B30580200906000036498F /* KSCrash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 12937235200671EE00EBC8F4 /* KSCrash.framework */; };
 		6F469D1C205BCE720069D788 /* Kumulos+Engage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F469D1B205BCE720069D788 /* Kumulos+Engage.swift */; };
 		6FDBD0EA233CF8C2000398EE /* KumulosInApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FDBD0E9233CF8C2000398EE /* KumulosInApp.swift */; };
-		A13430A11F013D6E00D185FD /* Kumulos+Crash.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13430A01F013D6E00D185FD /* Kumulos+Crash.swift */; };
-		A13430B71F014E5D00D185FD /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13430B61F014E5D00D185FD /* SystemConfiguration.framework */; };
-		A13430B91F014E6500D185FD /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13430B81F014E6500D185FD /* MessageUI.framework */; };
-		A13430BB1F014E8200D185FD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A13430BA1F014E8200D185FD /* libc++.tbd */; };
-		A13430BD1F014E9100D185FD /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A13430BC1F014E9100D185FD /* libz.tbd */; };
 		A16790821E49D8BD00C276AF /* KumulosPushChannels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16790811E49D8BD00C276AF /* KumulosPushChannels.swift */; };
 		A16790841E49DCDE00C276AF /* PushChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16790831E49DCDE00C276AF /* PushChannel.swift */; };
 		B625D075233A7A18003AA551 /* InAppPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B625D072233A7A17003AA551 /* InAppPresenter.swift */; };
@@ -53,21 +47,11 @@
 		128EF6EF233B6FF6006C7A71 /* KSUserNotificationCenterDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KSUserNotificationCenterDelegate.swift; path = Sources/KSUserNotificationCenterDelegate.swift; sourceTree = "<group>"; };
 		129372082006355E00EBC8F4 /* Kumulos+Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Kumulos+Analytics.swift"; path = "Sources/Kumulos+Analytics.swift"; sourceTree = "<group>"; };
 		1293720A2006378D00EBC8F4 /* AnalyticsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AnalyticsHelper.swift; path = Sources/AnalyticsHelper.swift; sourceTree = "<group>"; };
-		12937235200671EE00EBC8F4 /* KSCrash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = KSCrash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		12991B862007C2160000D492 /* KSCrash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = KSCrash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		12A6BD861FCD7A7400D59D37 /* KSConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = KSConfig.swift; path = Sources/KSConfig.swift; sourceTree = "<group>"; };
-		12F1E5CF2007C16E005151D5 /* KSCrash.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = KSCrash.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F469D1B205BCE720069D788 /* Kumulos+Engage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Kumulos+Engage.swift"; path = "Sources/Kumulos+Engage.swift"; sourceTree = "<group>"; };
 		6FDBD0E9233CF8C2000398EE /* KumulosInApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = KumulosInApp.swift; path = Sources/KumulosInApp.swift; sourceTree = "<group>"; };
-		A13430A01F013D6E00D185FD /* Kumulos+Crash.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Kumulos+Crash.swift"; path = "Sources/Kumulos+Crash.swift"; sourceTree = "<group>"; };
-		A13430B31F014C1500D185FD /* KSCrash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = KSCrash.framework; path = "../Library/Developer/Xcode/DerivedData/KumulosSDK-aqatglguuyycorbdiyjxlgliawoj/Build/Products/Debug-iphoneos/KSCrash.framework"; sourceTree = "<group>"; };
-		A13430B61F014E5D00D185FD /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		A13430B81F014E6500D185FD /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
-		A13430BA1F014E8200D185FD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
-		A13430BC1F014E9100D185FD /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		A16790811E49D8BD00C276AF /* KumulosPushChannels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = KumulosPushChannels.swift; path = Sources/KumulosPushChannels.swift; sourceTree = "<group>"; };
 		A16790831E49DCDE00C276AF /* PushChannel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PushChannel.swift; path = Sources/PushChannel.swift; sourceTree = "<group>"; };
-		A1D97A571F8682EF002CFB42 /* Alamofire.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Alamofire.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B625D072233A7A17003AA551 /* InAppPresenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InAppPresenter.swift; sourceTree = "<group>"; };
 		B625D073233A7A17003AA551 /* InAppHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InAppHelper.swift; sourceTree = "<group>"; };
 		B625D074233A7A17003AA551 /* InAppModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InAppModels.swift; sourceTree = "<group>"; };
@@ -79,11 +63,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12B30580200906000036498F /* KSCrash.framework in Frameworks */,
-				A13430BD1F014E9100D185FD /* libz.tbd in Frameworks */,
-				A13430BB1F014E8200D185FD /* libc++.tbd in Frameworks */,
-				A13430B91F014E6500D185FD /* MessageUI.framework in Frameworks */,
-				A13430B71F014E5D00D185FD /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,15 +72,6 @@
 		127B22AD1D9BE37A00D9C94B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				12991B862007C2160000D492 /* KSCrash.framework */,
-				12F1E5CF2007C16E005151D5 /* KSCrash.framework */,
-				12937235200671EE00EBC8F4 /* KSCrash.framework */,
-				A1D97A571F8682EF002CFB42 /* Alamofire.framework */,
-				A13430BC1F014E9100D185FD /* libz.tbd */,
-				A13430BA1F014E8200D185FD /* libc++.tbd */,
-				A13430B81F014E6500D185FD /* MessageUI.framework */,
-				A13430B61F014E5D00D185FD /* SystemConfiguration.framework */,
-				A13430B31F014C1500D185FD /* KSCrash.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -118,7 +88,6 @@
 				12A6BD861FCD7A7400D59D37 /* KSConfig.swift */,
 				127B22D21D9BE59E00D9C94B /* Kumulos.swift */,
 				127B22D31D9BE59E00D9C94B /* Kumulos+API.swift */,
-				A13430A01F013D6E00D185FD /* Kumulos+Crash.swift */,
 				6FDBD0E9233CF8C2000398EE /* KumulosInApp.swift */,
 				127B22D41D9BE59E00D9C94B /* Kumulos+Push.swift */,
 				127B22D51D9BE59E00D9C94B /* Kumulos+Stats.swift */,
@@ -250,7 +219,6 @@
 				127B22D91D9BE59E00D9C94B /* CwlSysctl.swift in Sources */,
 				127B22DF1D9BE59E00D9C94B /* Kumulos+Push.swift in Sources */,
 				B625D077233A7A18003AA551 /* InAppModels.swift in Sources */,
-				A13430A11F013D6E00D185FD /* Kumulos+Crash.swift in Sources */,
 				123D90A822A160D0004B8392 /* KSHttp.swift in Sources */,
 				127B22DB1D9BE59E00D9C94B /* KSAPIOperation.swift in Sources */,
 				127B22DE1D9BE59E00D9C94B /* Kumulos+API.swift in Sources */,

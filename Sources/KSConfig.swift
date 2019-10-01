@@ -88,11 +88,6 @@ open class KSConfigBuilder: NSObject {
         _sessionIdleTimeout = 40
     }
     
-    public func enableCrash() -> KSConfigBuilder {
-        _enableCrash = true
-        return self
-    }
-    
     public func setSessionIdleTimeout(seconds: UInt) -> KSConfigBuilder {
         _sessionIdleTimeout = seconds
         return self
