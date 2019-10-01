@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 // MARK: delegate protocol
 /*!
@@ -21,10 +22,25 @@ internal enum KumulosEvent : String {
     case STATS_ASSOCIATE_USER = "k.stats.userAssociated"
     case STATS_USER_ASSOCIATION_CLEARED = "k.stats.userAssociationCleared"
     case PUSH_DEVICE_REGISTER = "k.push.deviceRegistered"
-    case PUSH_OPEN_TRACK = "k.push.opened"
     case ENGAGE_BEACON_ENTERED_PROXIMITY = "k.engage.beaconEnteredProximity"
     case ENGAGE_LOCATION_UPDATED = "k.engage.locationUpdated"
     case DEVICE_UNSUBSCRIBED = "k.push.deviceUnsubscribed"
+    case IN_APP_CONSENT_CHANGED = "k.inApp.statusUpdated"
+    case MESSAGE_OPENED = "k.message.opened"
+    case MESSAGE_DISMISSED = "k.message.dismissed"
+    case MESSAGE_DELIVERED = "k.message.delivered"
+}
+
+public typealias InAppDeepLinkHandlerBlock = ([AnyHashable:Any]) -> Void
+public typealias PushOpenedHandlerBlock = (KSPushNotification) -> Void
+
+@available(iOS 10.0, *)
+public typealias PushReceivedInForegroundHandlerBlock = (KSPushNotification, (UNNotificationPresentationOptions)->Void) -> Void
+
+public enum InAppConsentStrategy : String {
+    case NotEnabled = "NotEnabled"
+    case AutoEnroll = "AutoEnroll"
+    case ExplicitByUser = "ExplicitByUser"
 }
 
 // MARK: class
@@ -43,11 +59,15 @@ open class Kumulos {
 
     internal let pushNotificationDeviceType = 1
     internal let pushNotificationProductionTokenType:Int = 1
+    
+    internal let sdkVersion : String = "6.0.0"
 
     var networkRequestsInProgress = 0
 
     fileprivate static var instance:Kumulos?
-
+    
+    internal var notificationCenter:Any?
+    
     internal static var sharedInstance:Kumulos {
         get {
             if(false == isInitialized()) {
@@ -66,7 +86,19 @@ open class Kumulos {
     fileprivate(set) var config : KSConfig
     fileprivate(set) var apiKey: String
     fileprivate(set) var secretKey: String
-    fileprivate(set) var analyticsHelper: AnalyticsHelper? = nil
+    fileprivate(set) var inAppConsentStrategy:InAppConsentStrategy = InAppConsentStrategy.NotEnabled
+    
+    internal static var inAppConsentStrategy : InAppConsentStrategy {
+        get {
+            return sharedInstance.inAppConsentStrategy
+        }
+    }
+    
+    fileprivate(set) var inAppHelper: InAppHelper
+        
+    fileprivate(set) var analyticsHelper: AnalyticsHelper
+
+    fileprivate var pushHelper: PushHelper
 
     public static var apiKey:String {
         get {
@@ -139,6 +171,8 @@ open class Kumulos {
 
         instance = Kumulos(config: config)
         
+        instance!.initializeHelpers()
+        
         DispatchQueue.global().async {
             instance!.sendDeviceInformation()
         }
@@ -152,6 +186,7 @@ open class Kumulos {
         self.config = config
         apiKey = config.apiKey
         secretKey = config.secretKey
+        inAppConsentStrategy = config.inAppConsentStrategy
 
         sessionToken = UUID().uuidString
 
@@ -162,7 +197,15 @@ open class Kumulos {
         eventsHttpClient = KSHttpClient(baseUrl: URL(string: baseEventsUrl)!, requestFormat: .json, responseFormat: .json)
         eventsHttpClient.setBasicAuth(user: config.apiKey, password: config.secretKey)
         
-        analyticsHelper = AnalyticsHelper(kumulos: self)
+        analyticsHelper = AnalyticsHelper()
+        inAppHelper = InAppHelper()
+        pushHelper = PushHelper()
+    }
+    
+    private func initializeHelpers() {
+        analyticsHelper.initialize(kumulos: self)
+        inAppHelper.initialize()
+        _ = pushHelper.pushInit
     }
 
     deinit {

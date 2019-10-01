@@ -48,7 +48,14 @@ class KSEventModel : NSManagedObject {
 }
 
 class AnalyticsHelper {
-    private var kumulos : Kumulos
+    private var k : Kumulos?
+    
+    private var kumulos : Kumulos {
+        get{
+            return k!
+        }
+    }
+    
     private var analyticsContext : NSManagedObjectContext?
     private var startNewSession : Bool
     private var sessionIdleTimer : SessionIdleTimer?
@@ -57,14 +64,17 @@ class AnalyticsHelper {
     
     // MARK: Initialization
     
-    init(kumulos:Kumulos) {
-        self.kumulos = kumulos;
+    init() {
         startNewSession = true
         sessionIdleTimer = nil
         bgTask = UIBackgroundTaskIdentifier.invalid
         analyticsContext = nil
         becameInactiveAt = nil
-        
+    }
+    
+    public func initialize(kumulos:Kumulos) {
+        self.k = kumulos;
+                
         initContext()
         registerListeners()
         
