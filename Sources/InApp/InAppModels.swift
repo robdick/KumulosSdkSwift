@@ -19,6 +19,7 @@ class InAppMessageEntity : NSManagedObject {
     @NSManaged var dismissedAt : NSDate?
     @NSManaged var inboxFrom : NSDate?
     @NSManaged var inboxTo : NSDate?
+    @NSManaged var expiresAt : NSDate?
 }
 
 public class InAppMessage: NSObject {

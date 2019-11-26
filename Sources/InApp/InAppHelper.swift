@@ -369,6 +369,8 @@ internal class InAppHelper {
                     model.inboxTo = dateParser.date(from: inbox["to"] as? String ?? "") as NSDate?
                 }
                 
+                model.expiresAt = dateParser.date(from: message["expiresAt"] as? String ?? "") as NSDate?
+                
                 if (model.updatedAt.timeIntervalSince1970 > lastSyncTime.timeIntervalSince1970) {
                     lastSyncTime = model.updatedAt
                 }
@@ -395,7 +397,9 @@ internal class InAppHelper {
         let fetchRequest:NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Message")
         fetchRequest.includesPendingChanges = true
         
-        let predicate: NSPredicate? = NSPredicate(format: "((dismissedAt != nil AND inboxConfig = nil) OR (inboxTo != nil AND inboxTo < %@))", NSDate())
+        let messageExpiredCondition = "(expiresAt != nil AND expiresAt <= %@)"
+        let predicate: NSPredicate? =
+            NSPredicate(format: "(inboxConfig = nil AND dismissedAt != nil) OR (inboxConfig = nil AND "+messageExpiredCondition+") OR (inboxTo != nil AND inboxTo < %@ AND (dismissedAt != nil OR "+messageExpiredCondition+"))", NSDate(), NSDate(), NSDate())
         fetchRequest.predicate = predicate
         
         var toEvict: [InAppMessageEntity]
@@ -423,7 +427,7 @@ internal class InAppHelper {
             fetchRequest.includesPendingChanges = false
             fetchRequest.returnsObjectsAsFaults = false
 
-            let predicate = NSPredicate(format: "((presentedWhen IN %@) OR (id IN %@)) AND (dismissedAt = nil)", presentedWhenOptions, self.pendingTickleIds)
+            let predicate = NSPredicate(format: "((presentedWhen IN %@) OR (id IN %@)) AND (dismissedAt = nil) AND (expiresAt = nil OR expiresAt > %@)", presentedWhenOptions, self.pendingTickleIds, NSDate())
             fetchRequest.predicate = predicate
 
             let sortDescriptor = NSSortDescriptor(key: "updatedAt", ascending: true)
@@ -590,7 +594,7 @@ internal class InAppHelper {
         messageEntity.managedObjectClassName = NSStringFromClass(InAppMessageEntity.self);
         
         var messageProps: [NSAttributeDescription] = [];
-        messageProps.reserveCapacity(10);
+        messageProps.reserveCapacity(11);
         
         let partId = NSAttributeDescription();
         partId.name = "id";
@@ -656,13 +660,20 @@ internal class InAppHelper {
         dismissedAt.isOptional = true;
         messageProps.append(dismissedAt);
         
+        let expiresAt = NSAttributeDescription();
+        expiresAt.name = "expiresAt";
+        expiresAt.attributeType = NSAttributeType.dateAttributeType;
+        expiresAt.isOptional = true;
+        messageProps.append(expiresAt);
+        
         messageEntity.properties = messageProps;
         
         model.entities = [messageEntity]
                 
         return model;
     }
-    
+
+    @objc
     class KSJsonValueTransformer: ValueTransformer {
         override class func transformedValueClass() -> AnyClass {
             return NSDictionary.self
