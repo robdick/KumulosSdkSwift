@@ -10,14 +10,26 @@ import UIKit
 import UserNotifications
 
 public class KumulosNotificationService {
-
     internal static let KS_MEDIA_RESIZER_BASE_URL = "https://i.app.delivery"
 
-    @available(iOS 10.0, *)
     public class func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         let bestAttemptContent =  (request.content.mutableCopy() as! UNMutableNotificationContent)
 
         let userInfo = request.content.userInfo
+        
+        let custom = userInfo["custom"] as! [AnyHashable:Any]
+        let data = custom["a"] as! [AnyHashable:Any]
+        
+        let msg = data["k.message"] as! [AnyHashable:Any]
+        let msgData = msg["data"] as! [AnyHashable:Any]
+        let id = msgData["id"] as! Int
+        
+        let buttons = data["k.buttons"] as? NSArray
+        
+        if (buttons != nil && bestAttemptContent.categoryIdentifier == "") {
+            addButtons(messageId: id, bestAttemptContent: bestAttemptContent, buttons: buttons!)
+        }
+        
         let attachments = userInfo["attachments"] as? [AnyHashable : Any]
         let pictureUrl = attachments?["pictureUrl"] as? String
 
@@ -40,9 +52,34 @@ public class KumulosNotificationService {
                }
                contentHandler(bestAttemptContent)
            })
-
     }
 
+    class func addButtons(messageId: Int, bestAttemptContent: UNMutableNotificationContent, buttons: NSArray) {
+        if (buttons.count == 0) {
+            return;
+        }
+        
+        let actionArray = NSMutableArray()
+        
+        for button in buttons {
+            let buttonDict = button as! [AnyHashable:Any]
+            
+            let id = buttonDict["id"] as! String
+            let text = buttonDict["text"] as! String
+            
+            let action = UNNotificationAction(identifier: id, title: text, options: .foreground)
+            actionArray.add(action);
+        }
+        
+        let categoryIdentifier = CategoryHelper.getCategoryIdForMessageId(messageId: messageId)
+        
+        let category = UNNotificationCategory(identifier: categoryIdentifier, actions: actionArray as! [UNNotificationAction], intentIdentifiers: [],  options: .customDismissAction)
+        
+        CategoryHelper.registerCategory(category: category)
+          
+        bestAttemptContent.categoryIdentifier = categoryIdentifier
+    }
+    
     class func getPictureExtension(_ pictureUrl: String?) -> String? {
         if (pictureUrl == nil){
             return nil;
@@ -67,7 +104,6 @@ public class KumulosNotificationService {
         return URL(string: completeString)
     }
 
-    @available(iOS 10.0, *)
     class func loadAttachment(_ url: URL, withExtension pictureExtension: String?, completionHandler: @escaping (UNNotificationAttachment?) -> Void) {
         let session = URLSession(configuration: URLSessionConfiguration.default)
 
@@ -101,7 +137,6 @@ public class KumulosNotificationService {
                 return
             }
 
-
             var attachment: UNNotificationAttachment? = nil
             do {
                 attachment = try UNNotificationAttachment(identifier: "", url: localURL, options: nil)
@@ -112,5 +147,4 @@ public class KumulosNotificationService {
             completionHandler(attachment)
         })).resume()
     }
-    
 }

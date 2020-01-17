@@ -127,10 +127,8 @@ class InAppPresenter : NSObject, WKScriptMessageHandler, WKNavigationDelegate{
             return
         }
 
-        if #available(iOS 10, *) {
-            let tickleNotificationId = "k-in-app-message:\(message.id)"
-            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [tickleNotificationId])
-        }
+        let tickleNotificationId = "k-in-app-message:\(message.id)"
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [tickleNotificationId])
         
         messageQueueLock.wait()
         defer {
@@ -208,17 +206,8 @@ class InAppPresenter : NSObject, WKScriptMessageHandler, WKNavigationDelegate{
         let config = WKWebViewConfiguration()
         config.userContentController = self.contentController!
         config.allowsInlineMediaPlayback = true
-                
-        if #available(iOS 10.0, *) {
-            config.mediaTypesRequiringUserActionForPlayback = []
-        } else {
-            if #available(iOS 9.0, *) {
-                config.requiresUserActionForMediaPlayback = false
-            } else {
-                config.mediaPlaybackRequiresUserAction = false
-            }
-        }
-
+        config.mediaTypesRequiringUserActionForPlayback = []
+        
         #if DEBUG
             config.preferences.setValue(true, forKey:"developerExtrasEnabled")
         #endif
@@ -413,16 +402,10 @@ class InAppPresenter : NSObject, WKScriptMessageHandler, WKNavigationDelegate{
             guard let url = URL(string: userAction.value(forKeyPath: "data.url") as! String) else {
                 return
             }
-
-            if #available(iOS 10.0.0, *) {
-                UIApplication.shared.open(url, options: [:]) { (win) in
-                    // noop
-                }
-            } else {
-                DispatchQueue.main.async {
-                    UIApplication.shared.openURL(url)
-                }
-            }
+            
+            UIApplication.shared.open(url, options: [:]) { (win) in
+                // noop
+            }            
         } else if (type == InAppAction.REQUEST_RATING.rawValue) {
             if #available(iOS 10.3.0, *) {
                 SKStoreReviewController.requestReview()
