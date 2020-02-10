@@ -18,16 +18,10 @@ public class KSPushNotification: NSObject {
     internal(set) open var url: URL?
     internal(set) open var actionIdentifier: String?
 
-    init(userInfo: [AnyHashable:Any]?, response: UNNotificationResponse?) {
+    init(userInfo: [AnyHashable:Any]?) {
         self.id = 0
         self.aps = [:]
         self.data = [:]
-
-        if let notificationResponse = response {
-            if (notificationResponse.actionIdentifier != UNNotificationDefaultActionIdentifier) {
-                actionIdentifier = notificationResponse.actionIdentifier
-            }
-        }
 
         guard let userInfo = userInfo else {
             return
@@ -38,7 +32,7 @@ public class KSPushNotification: NSObject {
         }
 
         self.aps = aps
-        
+
         guard let custom = userInfo["custom"] as? [AnyHashable:Any] else {
             return
         }
@@ -54,13 +48,24 @@ public class KSPushNotification: NSObject {
         }
 
         let msgData = msg["data"] as! [AnyHashable:Any]
-        
+
         id = msgData["id"] as! Int
 
         if let urlStr = custom["u"] as? String {
             url = URL(string: urlStr)
         } else {
             url = nil
+        }
+    }
+    
+    @available(iOS 10.0, *)
+    convenience init(userInfo: [AnyHashable:Any]?, response: UNNotificationResponse?) {
+        self.init(userInfo: userInfo)
+
+        if let notificationResponse = response {
+            if (notificationResponse.actionIdentifier != UNNotificationDefaultActionIdentifier) {
+                actionIdentifier = notificationResponse.actionIdentifier
+            }
         }
     }
 
@@ -85,13 +90,35 @@ public extension Kumulos {
         On success will raise the didRegisterForRemoteNotificationsWithDeviceToken UIApplication event
     */
     static func pushRequestDeviceToken() {
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
-            // actions based on whether notifications were authorized or not
+       if #available(iOS 10.0, *) {
+            let center = UNUserNotificationCenter.current()
+            center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+                // actions based on whether notifications were authorized or not
+            }
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+        } else {
+            DispatchQueue.main.async {
+                requestTokenLegacy()
+            }
         }
-        DispatchQueue.main.async {
-            UIApplication.shared.registerForRemoteNotifications()
-        }
+    }
+        
+    private static func requestTokenLegacy() {
+         // Determine the type of notifications we want to ask permission for, for example we may want to alert the user, update the badge number and play a sound
+         let notificationTypes: UIUserNotificationType = [UIUserNotificationType.alert, UIUserNotificationType.badge, UIUserNotificationType.sound]
+
+         // Create settings  based on those notification types we want the user to accept
+         let pushNotificationSettings = UIUserNotificationSettings(types: notificationTypes, categories: nil)
+
+         // Get the main application
+         let application = UIApplication.shared
+
+         // Register the settings created above - will show alert first if the user hasn't previously done this
+         // See delegate methods in AppDelegate - the AppDelegate conforms to the UIApplicationDelegate protocol
+         application.registerUserNotificationSettings(pushNotificationSettings)
+         application.registerForRemoteNotifications()
     }
 
     /**
@@ -131,6 +158,18 @@ public extension Kumulos {
         Kumulos.trackEvent(eventType: KumulosEvent.MESSAGE_OPENED, properties:params)
     }
 
+    internal func pushHandleOpen(withUserInfo: [AnyHashable: Any]?) {
+        guard let userInfo = withUserInfo else {
+            return
+        }
+
+        let notification = KSPushNotification(userInfo: userInfo)
+        
+        self.pushHandleOpen(notification: notification)
+    }
+  
+
+    @available(iOS 10.0, *)
     internal func pushHandleOpen(withUserInfo: [AnyHashable: Any]?, response: UNNotificationResponse?) -> Bool {
         let notification = KSPushNotification(userInfo: withUserInfo, response: response)
 
@@ -138,24 +177,35 @@ public extension Kumulos {
             return false
         }
 
-        Kumulos.pushTrackOpen(notification: notification)
-
-        // Handle URL pushes
-        if let url = notification.url {
-            UIApplication.shared.open(url, options: [:]) { (success) in
-                // noop
-            }
-        }
-
-        self.inAppHelper.handlePushOpen(notification: notification)
-
-        if let userOpenedHandler = self.config.pushOpenedHandlerBlock {
-            DispatchQueue.main.async {
-                userOpenedHandler(notification)
-            }
-        }
+        self.pushHandleOpen(notification: notification)
 
         return true
+    }
+    
+    private func pushHandleOpen(notification: KSPushNotification) {
+        Kumulos.pushTrackOpen(notification: notification)
+
+       // Handle URL pushes
+
+       if let url = notification.url {
+           if #available(iOS 10, *) {
+               UIApplication.shared.open(url, options: [:]) { (success) in
+                   // noop
+               }
+           } else {
+               DispatchQueue.main.async {
+                   UIApplication.shared.openURL(url)
+               }
+           }
+       }
+
+       self.inAppHelper.handlePushOpen(notification: notification)
+
+       if let userOpenedHandler = self.config.pushOpenedHandlerBlock {
+           DispatchQueue.main.async {
+               userOpenedHandler(notification)
+           }
+       }
     }
 
     fileprivate static func serializeDeviceToken(_ deviceToken: Data) -> String {
@@ -268,10 +318,11 @@ class PushHelper {
         }
         let kumulosDidReceive = imp_implementationWithBlock(unsafeBitCast(didReceive, to: AnyObject.self))
         existingDidReceive = class_replaceMethod(klass, didReceiveSelector, kumulosDidReceive, receiveType)
-
-        let delegate = KSUserNotificationCenterDelegate()
-        
-        Kumulos.sharedInstance.notificationCenter = delegate
-        UNUserNotificationCenter.current().delegate = delegate
+        if #available(iOS 10, *) {
+            let delegate = KSUserNotificationCenterDelegate()
+            
+            Kumulos.sharedInstance.notificationCenter = delegate
+            UNUserNotificationCenter.current().delegate = delegate
+        }
     }()
 }
