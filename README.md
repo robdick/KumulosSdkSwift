@@ -24,12 +24,16 @@ github "Kumulos/KumulosSdkSwift" ~> 8.2
 
 Run `carthage update` to install your dependencies then follow the [Carthage integration steps](https://github.com/Carthage/Carthage#getting-started) to link the framework with your project.
 
-Please also ensure you link your project against:
+Also link your project against:
 
 - SystemConfiguration.framework
 - MessageUI.framework (for iOS projects)
 - libc++
 - libz
+
+And add the `-ObjC` linker flag to 'Other Linker Flags' under 'Build Settings'.
+
+> N.B. make sure to link the dynamic `KSCrash.framework` from the Carthage build, and not the one under `Static/`
 
 ## Initializing and using the SDK
 
