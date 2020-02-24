@@ -131,7 +131,11 @@ public extension Kumulos {
         let token = serializeDeviceToken(deviceToken)
         let iosTokenType = getTokenType()
 
-        let parameters = ["token" : token, "type" : sharedInstance.pushNotificationDeviceType, "iosTokenType" : iosTokenType] as [String : Any]
+        let bundleId = Bundle.main.infoDictionary!["CFBundleIdentifier"] as Any
+        let parameters = ["token" : token,
+                          "type" : sharedInstance.pushNotificationDeviceType,
+                          "iosTokenType" : iosTokenType,
+                          "bundleId": bundleId] as [String : Any]
         
         Kumulos.trackEvent(eventType: KumulosEvent.PUSH_DEVICE_REGISTER, properties: parameters as [String : AnyObject], immediateFlush: true)
     }
@@ -308,7 +312,7 @@ class PushHelper {
 
                 if result < 0 {
                     fetchResult = .failed
-                } else if result > 1 {
+                } else if result > 0 {
                     fetchResult = .newData
                 }
                 // No data case is default, allow override from other handler

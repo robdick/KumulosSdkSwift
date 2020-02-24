@@ -265,8 +265,9 @@ internal class InAppHelper {
                     after = "?after=\(self.urlEncode(url: formatter.string(from: lastSyncTime as Date))!)" ;
                 }
             }
-            
-            let path = "/v1/users/\(Kumulos.currentUserIdentifier)/messages\(after)"
+
+            let encodedIdentifier = self.urlEncode(url: Kumulos.currentUserIdentifier)
+            let path = "/v1/users/\(encodedIdentifier!)/messages\(after)"
         
             Kumulos.sharedInstance.pushHttpClient.sendRequest(.GET, toPath: path, data: nil, onSuccess: { response, decodedBody in
                 let messagesToPersist = decodedBody as? [[AnyHashable : Any]]
@@ -565,10 +566,19 @@ internal class InAppHelper {
             defer { objc_sync_exit(self.pendingTickleIds) }
             
             self.pendingTickleIds.add(inAppPartId)
-       
-            let messagesToPresent = self.getMessagesToPresent([])
-            self.presenter.queueMessagesForPresentation(messages: messagesToPresent, tickleIds: self.pendingTickleIds)
 
+            let messagesToPresent = self.getMessagesToPresent([])
+
+            let tickleMessageFound = messagesToPresent.contains(where: { (message) -> Bool in
+                return message.id == inAppPartId
+            })
+
+            if (!tickleMessageFound) {
+                self.sync()
+                return
+            }
+
+            self.presenter.queueMessagesForPresentation(messages: messagesToPresent, tickleIds: self.pendingTickleIds)
         })
     }
     
