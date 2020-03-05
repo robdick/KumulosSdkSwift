@@ -29,6 +29,7 @@ internal enum KumulosEvent : String {
     case MESSAGE_OPENED = "k.message.opened"
     case MESSAGE_DISMISSED = "k.message.dismissed"
     case MESSAGE_DELIVERED = "k.message.delivered"
+    case MESSAGE_DELETED_FROM_INBOX = "k.message.inbox.deleted"
 }
 
 public typealias InAppDeepLinkHandlerBlock = ([AnyHashable:Any]) -> Void
@@ -60,7 +61,7 @@ open class Kumulos {
     internal let pushNotificationDeviceType = 1
     internal let pushNotificationProductionTokenType:Int = 1
     
-    internal let sdkVersion : String = "8.2.3"
+    internal let sdkVersion : String = "8.3.0"
 
     var networkRequestsInProgress = 0
 

@@ -311,12 +311,11 @@ internal class InAppHelper {
     }
     
     private func urlEncode(url: String) -> String? {
-        let unreserved = "*-._ "
+        let unreserved = "-._~"
         var allowed = CharacterSet.alphanumerics
         allowed.insert(charactersIn: unreserved)
-        
-        var encoded = url.addingPercentEncoding(withAllowedCharacters: allowed)
-        encoded = encoded?.replacingOccurrences(of: " ", with: "+")
+
+        let encoded = url.addingPercentEncoding(withAllowedCharacters: allowed)
         
         return encoded
     }
@@ -355,7 +354,9 @@ internal class InAppHelper {
                
                 model.id = partId
                 model.updatedAt = dateParser.date(from: message["updatedAt"] as! String)! as NSDate
-                model.dismissedAt =  dateParser.date(from: message["openedAt"] as? String ?? "") as NSDate?
+                if (model.dismissedAt == nil){
+                    model.dismissedAt =  dateParser.date(from: message["openedAt"] as? String ?? "") as NSDate?
+                }
                 model.presentedWhen = message["presentedWhen"] as! String
 
                 model.content = message["content"] as! NSDictionary
@@ -368,6 +369,18 @@ internal class InAppHelper {
                     
                     model.inboxFrom = dateParser.date(from: inbox["from"] as? String ?? "") as NSDate?
                     model.inboxTo = dateParser.date(from: inbox["to"] as? String ?? "") as NSDate?
+                }
+                
+                let inboxDeletedAt = message["inboxDeletedAt"] as? String
+                if (inboxDeletedAt != nil){
+                    model.inboxConfig = nil;
+                    model.inboxFrom = nil;
+                    model.inboxTo = nil;
+                    if (model.dismissedAt == nil){
+                        model.dismissedAt = dateParser.date(from: inboxDeletedAt!) as NSDate?
+                    }
+                    
+                    removeNotificationTickle(id: model.id)
                 }
                 
                 model.expiresAt = dateParser.date(from: message["expiresAt"] as? String ?? "") as NSDate?
@@ -392,6 +405,17 @@ internal class InAppHelper {
             
             trackMessageDelivery(messages: messages)
         })
+    }
+    
+    private func removeNotificationTickle(id: Int64) -> Void {
+        if (pendingTickleIds.contains(id)){
+            pendingTickleIds.remove(id)
+        }
+        
+        if #available(iOS 10, *) {
+           let tickleNotificationId = "k-in-app-message:\(id)"
+           UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [tickleNotificationId])
+        }
     }
     
     private func evictMessages(context: NSManagedObjectContext) -> Void {
@@ -462,9 +486,7 @@ internal class InAppHelper {
     internal func markMessageDismissed(message: InAppMessage) -> Void {
 
         let props: [String:Any] = ["type" : MESSAGE_TYPE_IN_APP, "id":message.id]
-        
         Kumulos.trackEvent(eventType: KumulosEvent.MESSAGE_DISMISSED, properties: props)
-        
         
         if (pendingTickleIds.contains(message.id)){
             pendingTickleIds.remove(message.id)
@@ -580,6 +602,52 @@ internal class InAppHelper {
 
             self.presenter.queueMessagesForPresentation(messages: messagesToPresent, tickleIds: self.pendingTickleIds)
         })
+    }
+    
+    func deleteMessageFromInbox(withId : Int64) -> Bool {
+        let props: [String:Any] = ["type" : MESSAGE_TYPE_IN_APP, "id":withId]
+        Kumulos.trackEvent(eventType: KumulosEvent.MESSAGE_DELETED_FROM_INBOX, properties: props)
+
+        removeNotificationTickle(id: withId)
+        
+        var result = true;
+        messagesContext!.performAndWait({
+            let context = self.messagesContext!
+            let entity: NSEntityDescription? = NSEntityDescription.entity(forEntityName: "Message", in: context)
+            
+            let fetchRequest:NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Message")
+            fetchRequest.entity = entity
+            fetchRequest.includesPendingChanges = false
+            fetchRequest.predicate = NSPredicate(format: "id = %i", withId)
+
+            var messageEntities: [InAppMessageEntity]
+            do {
+                messageEntities = try context.fetch(fetchRequest) as! [InAppMessageEntity]
+            } catch let err {
+                result = false;
+                print("Failed to delete message with id: \(withId) \(err)")
+                return;
+            }
+            
+            //setting inbox columns to nil and dismissedAt to now turns this message into a message to be evicted
+            if (messageEntities.count == 1){
+                messageEntities[0].inboxTo = nil
+                messageEntities[0].inboxFrom = nil
+                messageEntities[0].inboxConfig = nil
+                messageEntities[0].dismissedAt = NSDate()
+            }
+            
+            do{
+                try context.save()
+            }
+            catch let err {
+                result = false;
+                print("Failed to delete message with id: \(withId) \(err)")
+                return
+            }
+        });
+
+        return result
     }
     
     // MARK: Data model
