@@ -11,11 +11,15 @@ import UserNotifications
 
 public class KumulosNotificationService {
     internal static let KS_MEDIA_RESIZER_BASE_URL = "https://i.app.delivery"
-
+    fileprivate static var analyticsHelper: AnalyticsHelper?
+    
     public class func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         let bestAttemptContent =  (request.content.mutableCopy() as! UNMutableNotificationContent)
-
         let userInfo = request.content.userInfo
+        
+        if (!validateUserInfo(userInfo: userInfo)){
+            return
+        }
         
         let custom = userInfo["custom"] as! [AnyHashable:Any]
         let data = custom["a"] as! [AnyHashable:Any]
@@ -23,6 +27,10 @@ public class KumulosNotificationService {
         let msg = data["k.message"] as! [AnyHashable:Any]
         let msgData = msg["data"] as! [AnyHashable:Any]
         let id = msgData["id"] as! Int
+        
+        maybeSetBadge(bestAttemptContent: bestAttemptContent, userInfo: userInfo)
+        
+        trackDeliveredEvent(userInfo: userInfo, notificationId: id)
         
         let buttons = data["k.buttons"] as? NSArray
         
@@ -53,8 +61,43 @@ public class KumulosNotificationService {
                contentHandler(bestAttemptContent)
            })
     }
+    
+    fileprivate class func validateUserInfo(userInfo:[AnyHashable:Any]) -> Bool {
+        var dict: [AnyHashable:Any] = userInfo
+        let keysInOrder = ["custom", "a", "k.message", "data"]
+        
+        for key in keysInOrder
+        {
+            if (dict[key] == nil) {
+                return false
+            }
+            
+            dict = dict[key] as! [AnyHashable:Any]
+        }
+        
+        if (dict["id"] == nil){
+            return false
+        }
 
-    class func addButtons(messageId: Int, bestAttemptContent: UNMutableNotificationContent, buttons: NSArray) {
+        return true
+    }
+    
+    fileprivate class func maybeSetBadge(bestAttemptContent: UNMutableNotificationContent, userInfo: [AnyHashable:Any]){
+        let aps = userInfo["aps"] as! [AnyHashable:Any]
+        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+            return
+        }
+        
+        let newBadge: NSNumber? = KumulosHelper.getBadgeFromUserInfo(userInfo: userInfo)
+        if (newBadge == nil){
+            return;
+        }
+        
+        bestAttemptContent.badge = newBadge
+        KeyValPersistenceHelper.set(newBadge, forKey: KumulosUserDefaultsKey.BADGE_COUNT.rawValue)
+    }
+    
+    fileprivate class func addButtons(messageId: Int, bestAttemptContent: UNMutableNotificationContent, buttons: NSArray) {
         if (buttons.count == 0) {
             return;
         }
@@ -80,7 +123,7 @@ public class KumulosNotificationService {
         bestAttemptContent.categoryIdentifier = categoryIdentifier
     }
     
-    class func getPictureExtension(_ pictureUrl: String?) -> String? {
+    fileprivate class func getPictureExtension(_ pictureUrl: String?) -> String? {
         if (pictureUrl == nil){
             return nil;
         }
@@ -92,7 +135,7 @@ public class KumulosNotificationService {
         return "." + (pictureExtension)
     }
 
-    class func getCompletePictureUrl(_ pictureUrl: String) -> URL? {
+    fileprivate class func getCompletePictureUrl(_ pictureUrl: String) -> URL? {
         if (((pictureUrl as NSString).substring(with: NSRange(location: 0, length: 8))) == "https://") || (((pictureUrl as NSString).substring(with: NSRange(location: 0, length: 7))) == "http://") {
             return URL(string: pictureUrl)
         }
@@ -104,7 +147,7 @@ public class KumulosNotificationService {
         return URL(string: completeString)
     }
 
-    class func loadAttachment(_ url: URL, withExtension pictureExtension: String?, completionHandler: @escaping (UNNotificationAttachment?) -> Void) {
+    fileprivate class func loadAttachment(_ url: URL, withExtension pictureExtension: String?, completionHandler: @escaping (UNNotificationAttachment?) -> Void) {
         let session = URLSession(configuration: URLSessionConfiguration.default)
 
         (session.downloadTask(with: url, completionHandler: { temporaryFileLocation, response, error in
@@ -147,4 +190,31 @@ public class KumulosNotificationService {
             completionHandler(attachment)
         })).resume()
     }
+
+    fileprivate static func trackDeliveredEvent(userInfo: [AnyHashable:Any], notificationId: Int) {
+        let aps = userInfo["aps"] as! [AnyHashable:Any]
+        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+            return
+        }
+
+        initializeAnalyticsHelper()
+        guard let analyticsHelper = self.analyticsHelper else {
+            return
+        }
+        
+        let props: [String:Any] = ["type" : KS_MESSAGE_TYPE_PUSH, "id":notificationId]
+        analyticsHelper.trackEvent(eventType: KumulosSharedEvent.MESSAGE_DELIVERED.rawValue, properties: props, immediateFlush: true)
+    }
+    
+    fileprivate static func initializeAnalyticsHelper() {
+        let apiKey = KeyValPersistenceHelper.object(forKey: KumulosUserDefaultsKey.API_KEY.rawValue) as! String?
+        let secretKey = KeyValPersistenceHelper.object(forKey: KumulosUserDefaultsKey.SECRET_KEY.rawValue) as! String?
+        if (apiKey == nil || secretKey == nil){
+            print("Extension: authorization credentials not present")
+            return;
+        }
+        
+        analyticsHelper = AnalyticsHelper(apiKey: apiKey!, secretKey: secretKey!)
+    }
+
 }

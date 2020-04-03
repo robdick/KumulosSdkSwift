@@ -9,7 +9,6 @@ import Foundation
 import UserNotifications
 
 internal let MAX_DYNAMIC_CATEGORIES = 128
-internal let DYNAMIC_CATEGORY_USER_DEFAULTS_KEY = "__kumulos__dynamic__categories__"
 internal let DYNAMIC_CATEGORY_IDENTIFIER = "__kumulos_category_%d__"
 
 @available(iOS 10.0, *)
@@ -66,14 +65,13 @@ internal class CategoryHelper {
             dynamicCategoryLock.signal()
         }
             
-        if let existingArray = UserDefaults.standard.object(forKey: DYNAMIC_CATEGORY_USER_DEFAULTS_KEY) {
+        if let existingArray = UserDefaults.standard.object(forKey: KumulosUserDefaultsKey.DYNAMIC_CATEGORY.rawValue) {
             return existingArray as! [String]
         }
 
         let newArray = [String]()
         
-        UserDefaults.standard.set(newArray, forKey: DYNAMIC_CATEGORY_USER_DEFAULTS_KEY)
-        UserDefaults.standard.synchronize()
+        UserDefaults.standard.set(newArray, forKey: KumulosUserDefaultsKey.DYNAMIC_CATEGORY.rawValue)
         
         return newArray
     }
@@ -81,7 +79,7 @@ internal class CategoryHelper {
     fileprivate func pruneCategoriesAndSave(categories: Set<UNNotificationCategory>, dynamicCategories: [String]) -> Void {
         if (dynamicCategories.count <= MAX_DYNAMIC_CATEGORIES) {
             UNUserNotificationCenter.current().setNotificationCategories(categories)
-            UserDefaults.standard.set(dynamicCategories, forKey: DYNAMIC_CATEGORY_USER_DEFAULTS_KEY)
+            UserDefaults.standard.set(dynamicCategories, forKey: KumulosUserDefaultsKey.DYNAMIC_CATEGORY.rawValue)
             return
         }
         
@@ -96,6 +94,6 @@ internal class CategoryHelper {
         }
         
         UNUserNotificationCenter.current().setNotificationCategories(prunedCategories)
-        UserDefaults.standard.set(prunedDynamicCategories, forKey: DYNAMIC_CATEGORY_USER_DEFAULTS_KEY)
+        UserDefaults.standard.set(prunedDynamicCategories, forKey: KumulosUserDefaultsKey.DYNAMIC_CATEGORY.rawValue)
     }
 }

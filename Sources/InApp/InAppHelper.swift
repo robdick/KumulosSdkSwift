@@ -26,8 +26,7 @@ internal class InAppHelper {
     
     var messagesContext: NSManagedObjectContext? = nil;
     
-    internal let KUMULOS_IN_APP_CONSENTED_KEY = "KumulosInAppConsented"
-    internal let KUMULOS_MESSAGES_LAST_SYNC_TIME = "KumulosMessagesLastSyncTime"
+    
     
     internal let MESSAGE_TYPE_IN_APP = 2
     
@@ -95,7 +94,7 @@ internal class InAppHelper {
         #if DEBUG
             sync(onComplete)
         #else
-            let lastSyncTime = UserDefaults.standard.object(forKey: KUMULOS_MESSAGES_LAST_SYNC_TIME) as? Date
+        let lastSyncTime = UserDefaults.standard.object(forKey: KumulosUserDefaultsKey.MESSAGES_LAST_SYNC_TIME.rawValue) as? Date
             if lastSyncTime != nil && lastSyncTime!.timeIntervalSinceNow < -3600 as Double {
                 sync(onComplete)
             }
@@ -149,7 +148,7 @@ internal class InAppHelper {
     }
     
     func userConsented() -> Bool {
-        return UserDefaults.standard.bool(forKey: KUMULOS_IN_APP_CONSENTED_KEY);
+        return UserDefaults.standard.bool(forKey: KumulosUserDefaultsKey.IN_APP_CONSENTED.rawValue)
     }
     
     func updateUserConsent(consentGiven: Bool) {
@@ -158,7 +157,7 @@ internal class InAppHelper {
         Kumulos.trackEventImmediately(eventType: KumulosEvent.IN_APP_CONSENT_CHANGED.rawValue, properties: props)
         
         if (consentGiven) {
-            UserDefaults.standard.set(consentGiven, forKey: KUMULOS_IN_APP_CONSENTED_KEY)
+            UserDefaults.standard.set(consentGiven, forKey: KumulosUserDefaultsKey.IN_APP_CONSENTED.rawValue)
             handleEnrollmentAndSyncSetup()
         }
         else {
@@ -223,8 +222,8 @@ internal class InAppHelper {
 
     private func resetMessagingState() -> Void {
         NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
-        UserDefaults.standard.removeObject(forKey: KUMULOS_IN_APP_CONSENTED_KEY)
-        UserDefaults.standard.removeObject(forKey: KUMULOS_MESSAGES_LAST_SYNC_TIME)
+        UserDefaults.standard.removeObject(forKey: KumulosUserDefaultsKey.IN_APP_CONSENTED.rawValue)
+        UserDefaults.standard.removeObject(forKey: KumulosUserDefaultsKey.MESSAGES_LAST_SYNC_TIME.rawValue)
         
         messagesContext!.performAndWait({
             let context = self.messagesContext
@@ -253,7 +252,7 @@ internal class InAppHelper {
     // MARK: Message management
     func sync(_ onComplete: ((_ result: Int) -> Void)? = nil) {
         syncQueue.async(execute: {
-            let lastSyncTime = UserDefaults.standard.object(forKey: self.KUMULOS_MESSAGES_LAST_SYNC_TIME) as? NSDate
+            let lastSyncTime = UserDefaults.standard.object(forKey: KumulosUserDefaultsKey.MESSAGES_LAST_SYNC_TIME.rawValue) as? NSDate
             var after = ""
             
             if lastSyncTime != nil {
@@ -266,7 +265,7 @@ internal class InAppHelper {
                 }
             }
 
-            let encodedIdentifier = self.urlEncode(url: Kumulos.currentUserIdentifier)
+            let encodedIdentifier = self.urlEncode(url: KumulosHelper.currentUserIdentifier)
             let path = "/v1/users/\(encodedIdentifier!)/messages\(after)"
         
             Kumulos.sharedInstance.pushHttpClient.sendRequest(.GET, toPath: path, data: nil, onSuccess: { response, decodedBody in
@@ -401,7 +400,7 @@ internal class InAppHelper {
                 return
             }
             
-            UserDefaults.standard.set(lastSyncTime, forKey: KUMULOS_MESSAGES_LAST_SYNC_TIME)
+            UserDefaults.standard.set(lastSyncTime, forKey: KumulosUserDefaultsKey.MESSAGES_LAST_SYNC_TIME.rawValue)
             
             trackMessageDelivery(messages: messages)
         })
@@ -527,7 +526,7 @@ internal class InAppHelper {
     private func trackMessageDelivery(messages: [[AnyHashable : Any]]) -> Void {
         for message in messages {
             let props: [String:Any] = ["type" : MESSAGE_TYPE_IN_APP, "id":message["id"] as! Int]
-            Kumulos.trackEvent(eventType: KumulosEvent.MESSAGE_DELIVERED, properties: props)
+            Kumulos.trackEvent(eventType: KumulosSharedEvent.MESSAGE_DELIVERED.rawValue, properties: props)
         }
     }
     

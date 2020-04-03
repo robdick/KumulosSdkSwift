@@ -7,8 +7,6 @@ import Foundation
 import UserNotifications
 import ObjectiveC.runtime
 
-internal let KS_MESSAGE_TYPE_PUSH = 1
-
 public class KSPushNotification: NSObject {
     internal static let DeepLinkTypeInApp : Int = 1;
 
@@ -358,13 +356,21 @@ class PushHelper {
             } else {
                 fetchBarrier.signal()
             }
-
+            
             let aps = userInfo["aps"] as! [AnyHashable:Any]
             guard let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 else {
+                if #available(iOS 10, *) {} else {
+                    self.setBadge(userInfo: userInfo)
+                    self.trackPushDelivery(userInfo: userInfo)
+                }
+                
                 completionHandler(fetchResult)
                 return
             }
-
+          
+            self.setBadge(userInfo: userInfo)
+            self.trackPushDelivery(userInfo: userInfo)
+            
             Kumulos.sharedInstance.inAppHelper.sync { (result:Int) in
                 _ = fetchBarrier.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(20))
 
@@ -387,4 +393,21 @@ class PushHelper {
             UNUserNotificationCenter.current().delegate = delegate
         }
     }()
+    
+    fileprivate func setBadge(userInfo: [AnyHashable:Any]){
+        let badge: NSNumber? = KumulosHelper.getBadgeFromUserInfo(userInfo: userInfo)
+        if let newBadge = badge {
+            UIApplication.shared.applicationIconBadgeNumber = newBadge.intValue
+        }
+    }
+    
+    fileprivate func trackPushDelivery(userInfo: [AnyHashable : Any]){
+        let notification = KSPushNotification(userInfo: userInfo)
+        if (notification.id == 0) {
+            return
+        }
+        
+        let props: [String:Any] = ["type" : KS_MESSAGE_TYPE_PUSH, "id": notification.id]
+        Kumulos.trackEvent(eventType: KumulosSharedEvent.MESSAGE_DELIVERED, properties:props, immediateFlush: true)
+    }
 }
