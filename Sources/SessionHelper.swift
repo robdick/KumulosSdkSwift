@@ -106,13 +106,13 @@ internal class SessionHelper {
     }
 
     @objc private func appWillTerminate() {
+        if becameInactiveAt == nil {
+            becameInactiveAt = Date()
+        }
+
         if sessionIdleTimer != nil {
             sessionIdleTimer?.invalidate()
             sessionDidEnd()
-        }
-
-        if becameInactiveAt == nil {
-            becameInactiveAt = Date()
         }
     }
 
