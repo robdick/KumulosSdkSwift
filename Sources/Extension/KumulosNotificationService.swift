@@ -12,9 +12,10 @@ import UserNotifications
 public class KumulosNotificationService {
     internal static let KS_MEDIA_RESIZER_BASE_URL = "https://i.app.delivery"
     fileprivate static var analyticsHelper: AnalyticsHelper?
+    private static let syncBarrier = DispatchSemaphore(value: 0)
     
     public class func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        let bestAttemptContent =  (request.content.mutableCopy() as! UNMutableNotificationContent)
+        let bestAttemptContent = (request.content.mutableCopy() as! UNMutableNotificationContent)
         let userInfo = request.content.userInfo
         
         if (!validateUserInfo(userInfo: userInfo)){
@@ -28,39 +29,20 @@ public class KumulosNotificationService {
         let msgData = msg["data"] as! [AnyHashable:Any]
         let id = msgData["id"] as! Int
         
+        maybeAddButtons(userInfo: userInfo, bestAttemptContent:bestAttemptContent)
+        
+        let dispatchGroup = DispatchGroup()
+        
+        maybeAddImageAttachment(dispatchGroup: dispatchGroup, userInfo: userInfo, bestAttemptContent: bestAttemptContent)
+        
         if (AppGroupsHelper.isKumulosAppGroupDefined()){
             maybeSetBadge(bestAttemptContent: bestAttemptContent, userInfo: userInfo)
-            trackDeliveredEvent(userInfo: userInfo, notificationId: id)
-        }
-       
-        let buttons = data["k.buttons"] as? NSArray
-        
-        if (buttons != nil && bestAttemptContent.categoryIdentifier == "") {
-            addButtons(messageId: id, bestAttemptContent: bestAttemptContent, buttons: buttons!)
+            trackDeliveredEvent(dispatchGroup: dispatchGroup, userInfo: userInfo, notificationId: id)
         }
         
-        let attachments = userInfo["attachments"] as? [AnyHashable : Any]
-        let pictureUrl = attachments?["pictureUrl"] as? String
-
-        if pictureUrl == nil {
+        dispatchGroup.notify(queue: .main) {
             contentHandler(bestAttemptContent)
-            return
         }
-
-        let picExtension = getPictureExtension(pictureUrl)
-        let url = getCompletePictureUrl(pictureUrl!)
-
-        if (url == nil){
-            contentHandler(bestAttemptContent)
-            return
-        }
-
-        loadAttachment(url!, withExtension: picExtension, completionHandler: { attachment in
-               if attachment != nil {
-                   bestAttemptContent.attachments = [attachment!]
-               }
-               contentHandler(bestAttemptContent)
-           })
     }
     
     fileprivate class func validateUserInfo(userInfo:[AnyHashable:Any]) -> Bool {
@@ -76,36 +58,34 @@ public class KumulosNotificationService {
             dict = dict[key] as! [AnyHashable:Any]
         }
         
-        if (dict["id"] == nil){
+        if (dict["id"] == nil) {
             return false
         }
 
         return true
     }
     
-    fileprivate class func maybeSetBadge(bestAttemptContent: UNMutableNotificationContent, userInfo: [AnyHashable:Any]){
-        let aps = userInfo["aps"] as! [AnyHashable:Any]
-        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+    fileprivate class func maybeAddButtons(userInfo:[AnyHashable:Any], bestAttemptContent: UNMutableNotificationContent) {
+        if(bestAttemptContent.categoryIdentifier != "") {
             return
         }
         
-        let newBadge: NSNumber? = KumulosHelper.getBadgeFromUserInfo(userInfo: userInfo)
-        if (newBadge == nil){
-            return;
-        }
+        let custom = userInfo["custom"] as! [AnyHashable:Any]
+        let data = custom["a"] as! [AnyHashable:Any]
         
-        bestAttemptContent.badge = newBadge
-        KeyValPersistenceHelper.set(newBadge, forKey: KumulosUserDefaultsKey.BADGE_COUNT.rawValue)
-    }
-    
-    fileprivate class func addButtons(messageId: Int, bestAttemptContent: UNMutableNotificationContent, buttons: NSArray) {
-        if (buttons.count == 0) {
+        let msg = data["k.message"] as! [AnyHashable:Any]
+        let msgData = msg["data"] as! [AnyHashable:Any]
+        let id = msgData["id"] as! Int
+        
+        let buttons = data["k.buttons"] as? NSArray
+        
+        if (buttons == nil || buttons!.count == 0) {
             return;
         }
         
         let actionArray = NSMutableArray()
         
-        for button in buttons {
+        for button in buttons! {
             let buttonDict = button as! [AnyHashable:Any]
             
             let id = buttonDict["id"] as! String
@@ -115,13 +95,35 @@ public class KumulosNotificationService {
             actionArray.add(action);
         }
         
-        let categoryIdentifier = CategoryHelper.getCategoryIdForMessageId(messageId: messageId)
+        let categoryIdentifier = CategoryHelper.getCategoryIdForMessageId(messageId: id)
         
         let category = UNNotificationCategory(identifier: categoryIdentifier, actions: actionArray as! [UNNotificationAction], intentIdentifiers: [],  options: .customDismissAction)
         
         CategoryHelper.registerCategory(category: category)
           
         bestAttemptContent.categoryIdentifier = categoryIdentifier
+    }
+    
+    fileprivate class func maybeAddImageAttachment(dispatchGroup: DispatchGroup, userInfo: [AnyHashable:Any], bestAttemptContent: UNMutableNotificationContent) {
+        let attachments = userInfo["attachments"] as? [AnyHashable : Any]
+        let pictureUrl = attachments?["pictureUrl"] as? String
+
+        if pictureUrl == nil {
+            return
+        }
+
+        let picExtension = getPictureExtension(pictureUrl)
+        let url = getCompletePictureUrl(pictureUrl!)
+        
+        dispatchGroup.enter()
+ 
+        loadAttachment(url!, withExtension: picExtension, completionHandler: { attachment in
+            if attachment != nil {
+               bestAttemptContent.attachments = [attachment!]
+
+            }
+            dispatchGroup.leave()
+        })
     }
     
     fileprivate class func getPictureExtension(_ pictureUrl: String?) -> String? {
@@ -191,8 +193,23 @@ public class KumulosNotificationService {
             completionHandler(attachment)
         })).resume()
     }
+    
+    fileprivate class func maybeSetBadge(bestAttemptContent: UNMutableNotificationContent, userInfo: [AnyHashable:Any]){
+        let aps = userInfo["aps"] as! [AnyHashable:Any]
+        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+            return
+        }
+        
+        let newBadge: NSNumber? = KumulosHelper.getBadgeFromUserInfo(userInfo: userInfo)
+        if (newBadge == nil){
+            return;
+        }
+        
+        bestAttemptContent.badge = newBadge
+        KeyValPersistenceHelper.set(newBadge, forKey: KumulosUserDefaultsKey.BADGE_COUNT.rawValue)
+    }
 
-    fileprivate static func trackDeliveredEvent(userInfo: [AnyHashable:Any], notificationId: Int) {
+    fileprivate class func trackDeliveredEvent(dispatchGroup: DispatchGroup, userInfo: [AnyHashable:Any], notificationId: Int) {
         let aps = userInfo["aps"] as! [AnyHashable:Any]
         if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
             return
@@ -204,10 +221,18 @@ public class KumulosNotificationService {
         }
         
         let props: [String:Any] = ["type" : KS_MESSAGE_TYPE_PUSH, "id":notificationId]
-        analyticsHelper.trackEvent(eventType: KumulosSharedEvent.MESSAGE_DELIVERED.rawValue, properties: props, immediateFlush: true)
+        
+        dispatchGroup.enter()
+        
+        analyticsHelper.trackEvent(eventType: KumulosSharedEvent.MESSAGE_DELIVERED.rawValue, atTime: Date(), properties: props, immediateFlush: true, onSyncComplete: {err in
+            self.syncBarrier.signal()
+        })
+
+        _ = syncBarrier.wait(timeout: .now() + .seconds(10))
+        dispatchGroup.leave()
     }
     
-    fileprivate static func initializeAnalyticsHelper() {
+    fileprivate class func initializeAnalyticsHelper() {
         let apiKey = KeyValPersistenceHelper.object(forKey: KumulosUserDefaultsKey.API_KEY.rawValue) as! String?
         let secretKey = KeyValPersistenceHelper.object(forKey: KumulosUserDefaultsKey.SECRET_KEY.rawValue) as! String?
         if (apiKey == nil || secretKey == nil){
@@ -217,5 +242,4 @@ public class KumulosNotificationService {
         
         analyticsHelper = AnalyticsHelper(apiKey: apiKey!, secretKey: secretKey!)
     }
-
 }
