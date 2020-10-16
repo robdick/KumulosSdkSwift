@@ -29,6 +29,7 @@ internal enum KumulosEvent : String {
     case MESSAGE_OPENED = "k.message.opened"
     case MESSAGE_DISMISSED = "k.message.dismissed"
     case MESSAGE_DELETED_FROM_INBOX = "k.message.inbox.deleted"
+    case DEEP_LINK_MATCHED = "k.deepLink.matched"
 }
 
 public typealias InAppDeepLinkHandlerBlock = ([AnyHashable:Any]) -> Void
@@ -55,7 +56,7 @@ open class Kumulos {
     internal let pushNotificationDeviceType = 1
     internal let pushNotificationProductionTokenType:Int = 1
 
-    internal let sdkVersion : String = "8.5.0"
+    internal let sdkVersion : String = "8.6.0"
 
     var networkRequestsInProgress = 0
 
@@ -96,6 +97,8 @@ open class Kumulos {
     fileprivate(set) var badgeObserver: KSBadgeObserver
 
     fileprivate var pushHelper: PushHelper
+
+    fileprivate(set) var deepLinkHelper : DeepLinkHelper?
 
     public static var apiKey:String {
         get {
@@ -190,12 +193,17 @@ open class Kumulos {
         badgeObserver = KSBadgeObserver({ (newBadgeCount) in
            KeyValPersistenceHelper.set(newBadgeCount, forKey: KumulosUserDefaultsKey.BADGE_COUNT.rawValue)
         })
+
+        if config.deepLinkHandler != nil {
+            deepLinkHelper = DeepLinkHelper(config)
+        }
     }
 
     private func initializeHelpers() {
         sessionHelper.initialize()
         inAppHelper.initialize()
         _ = pushHelper.pushInit
+        deepLinkHelper?.checkForDeferredLink()
     }
 
     deinit {
