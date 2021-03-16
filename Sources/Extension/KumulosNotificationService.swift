@@ -29,7 +29,11 @@ public class KumulosNotificationService {
         let msgData = msg["data"] as! [AnyHashable:Any]
         let id = msgData["id"] as! Int
         
-        maybeAddButtons(userInfo: userInfo, bestAttemptContent:bestAttemptContent)
+        if(bestAttemptContent.categoryIdentifier == "") {
+            let actionButtons = getButtons(userInfo: userInfo, bestAttemptContent:bestAttemptContent)
+            
+            addCategory(bestAttemptContent:bestAttemptContent, actionArray: actionButtons, id: id)
+        }
         
         let dispatchGroup = DispatchGroup()
         
@@ -38,6 +42,7 @@ public class KumulosNotificationService {
         if (AppGroupsHelper.isKumulosAppGroupDefined()){
             maybeSetBadge(bestAttemptContent: bestAttemptContent, userInfo: userInfo)
             trackDeliveredEvent(dispatchGroup: dispatchGroup, userInfo: userInfo, notificationId: id)
+            PendingNotificationHelper.add(notification: PendingNotification(id: id, deliveredAt: Date(), identifier: request.identifier))
         }
         
         dispatchGroup.notify(queue: .main) {
@@ -65,25 +70,17 @@ public class KumulosNotificationService {
         return true
     }
     
-    fileprivate class func maybeAddButtons(userInfo:[AnyHashable:Any], bestAttemptContent: UNMutableNotificationContent) {
-        if(bestAttemptContent.categoryIdentifier != "") {
-            return
-        }
+    fileprivate class func getButtons(userInfo:[AnyHashable:Any], bestAttemptContent: UNMutableNotificationContent) -> NSMutableArray {
+        let actionArray = NSMutableArray()
         
         let custom = userInfo["custom"] as! [AnyHashable:Any]
         let data = custom["a"] as! [AnyHashable:Any]
         
-        let msg = data["k.message"] as! [AnyHashable:Any]
-        let msgData = msg["data"] as! [AnyHashable:Any]
-        let id = msgData["id"] as! Int
-        
         let buttons = data["k.buttons"] as? NSArray
         
         if (buttons == nil || buttons!.count == 0) {
-            return;
+            return actionArray;
         }
-        
-        let actionArray = NSMutableArray()
         
         for button in buttons! {
             let buttonDict = button as! [AnyHashable:Any]
@@ -95,6 +92,10 @@ public class KumulosNotificationService {
             actionArray.add(action);
         }
         
+        return actionArray;
+    }
+    
+    fileprivate class func addCategory(bestAttemptContent: UNMutableNotificationContent, actionArray:NSMutableArray, id: Int) {
         let categoryIdentifier = CategoryHelper.getCategoryIdForMessageId(messageId: id)
         
         let category = UNNotificationCategory(identifier: categoryIdentifier, actions: actionArray as! [UNNotificationAction], intentIdentifiers: [],  options: .customDismissAction)
@@ -208,10 +209,9 @@ public class KumulosNotificationService {
         bestAttemptContent.badge = newBadge
         KeyValPersistenceHelper.set(newBadge, forKey: KumulosUserDefaultsKey.BADGE_COUNT.rawValue)
     }
-
+    
     fileprivate class func trackDeliveredEvent(dispatchGroup: DispatchGroup, userInfo: [AnyHashable:Any], notificationId: Int) {
-        let aps = userInfo["aps"] as! [AnyHashable:Any]
-        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+        if (isBackgroundPush(userInfo: userInfo)){
             return
         }
 
@@ -241,5 +241,14 @@ public class KumulosNotificationService {
         }
         
         analyticsHelper = AnalyticsHelper(apiKey: apiKey!, secretKey: secretKey!)
+    }
+    
+    fileprivate class func isBackgroundPush(userInfo: [AnyHashable:Any]) -> Bool{
+        let aps = userInfo["aps"] as! [AnyHashable:Any]
+        if let contentAvailable = aps["content-available"] as? Int, contentAvailable == 1 {
+            return true
+        }
+
+        return false
     }
 }
