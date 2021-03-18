@@ -33,6 +33,13 @@ let package = Package(
                 "KumulosSDK.h",
                 "MobileProvision.h",
                 "MobileProvision.m",
+            ],
+            linkerSettings: [
+                .linkedFramework("Foundation"),
+                .linkedFramework("SystemConfiguration"),
+                .linkedFramework("MessageUI"),
+                .linkedLibrary("libc++"),
+                .linkedLibrary("libz")
             ]
         )
     ],
