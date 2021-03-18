@@ -46,7 +46,7 @@ let package = Package(
                 .linkedFramework("MessageUI"),
                 .linkedLibrary("libc++"),
                 .linkedLibrary("libz"),
-                .unsafeFlags("-ObjC")
+                .unsafeFlags(["-ObjC"])
             ]
         )
     ],
