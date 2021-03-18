@@ -13,10 +13,6 @@ let package = Package(
             targets: ["KumulosSdkSwift"]),
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/kstenerud/KSCrash.git",
-            .branch("master")
-        ),
     ],
     targets: [
         .target(
@@ -28,14 +24,13 @@ let package = Package(
                 .headerSearchPath("Extension/headers"),
             ],
             linkerSettings: [
-                .linkedFramework("UIKit", .when(platforms: [.iOS])),
+                .linkedFramework("UIKit"),
             ]
         ),
         .target(
             name: "KumulosSdkSwift",
             dependencies: [
-                "ObjCSources",
-                "KSCrash"
+                "ObjCSources"
             ],
             path: "Sources",
             linkerSettings: [
