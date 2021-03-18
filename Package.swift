@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "KumulosSdkSwift",
+    name: "KumulosSdk",
     platforms: [
         .iOS(.v9)
     ],
     products: [
         .library(
-            name: "KumulosSdkSwift",
-            targets: ["KumulosSdkSwift"]),
+            name: "KumulosSdk",
+            targets: ["KumulosSdk"]),
     ],
     dependencies: [
         .package(
@@ -21,9 +21,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ObjCSources",
+            name: "KumulosSdkObjC",
             dependencies: [],
-            path: "ObjCSources",
+            path: "SourcesObjC",
             cSettings: [
                   .headerSearchPath("include"),
             ],
@@ -32,8 +32,9 @@ let package = Package(
             ]
         ),
         .target(
-            name: "KumulosSdkSwift",
+            name: "KumulosSdk",
             dependencies: [
+                "KumulosSdkObjC",
                 "KSCrash"
             ],
             path: "Sources",
