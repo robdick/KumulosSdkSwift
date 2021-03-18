@@ -35,6 +35,7 @@ let package = Package(
             ],
             path: "Sources",
             linkerSettings: [
+                .linkedLibrary("KSCrash"),
                 .linkedFramework("UIKit"),
                 .linkedFramework("Foundation"),
                 .linkedFramework("SystemConfiguration"),
