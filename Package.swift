@@ -23,10 +23,9 @@ let package = Package(
             name: "ObjCSources",
             dependencies: [],
             path: "ObjCSources",
-            exclude: ["Sources"],
             cSettings: [
-                .headerSearchPath("ObjCSources"),
-                .headerSearchPath("ObjCSources/Extension"),
+                .headerSearchPath("headers"),
+                .headerSearchPath("Extension/headers"),
             ],
             linkerSettings: [
                 .linkedFramework("UIKit", .when(platforms: [.iOS])),
