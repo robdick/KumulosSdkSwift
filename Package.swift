@@ -40,14 +40,6 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "Extension"
-            ],
-            linkerSettings: [
-                .linkedFramework("UIKit"),
-                .linkedFramework("Foundation"),
-                .linkedFramework("SystemConfiguration"),
-                .linkedFramework("MessageUI"),
-                .linkedLibrary("libc++"),
-                .linkedLibrary("libz")
             ]
         )
     ],
