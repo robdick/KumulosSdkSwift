@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "KumulosSdkSwift",
-            targets: ["KumulosSdkSwift", "KumulosSDKExtension"]),
+            targets: ["KumulosSdkSwift"]),
     ],
     dependencies: [
         .package(
@@ -45,14 +45,6 @@ let package = Package(
                 .linkedFramework("MessageUI"),
                 .linkedLibrary("libc++"),
                 .linkedLibrary("libz")
-            ]
-        ),
-        .target(
-            name: "KumulosSDKExtension",
-            path: "Sources",
-            sources: [
-                "Extension",
-                "Shared"
             ]
         )
     ],
