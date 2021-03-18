@@ -26,13 +26,7 @@ let package = Package(
             ],
             path: "Sources",
             exclude: [
-                "Info.plist",
                 "Extension",
-                "KSBadgeObserver.h",
-                "KSBadgeObserver.m",
-                "KumulosSDK.h",
-                "MobileProvision.h",
-                "MobileProvision.m",
             ],
             linkerSettings: [
                 .linkedFramework("Foundation"),
