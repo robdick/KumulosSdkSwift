@@ -10,10 +10,11 @@ let package = Package(
     products: [
         .library(
             name: "KumulosSdkSwift",
-            targets: ["KumulosSdkSwift"]),
+            targets: ["KumulosSdkSwift", "KumulosSDKExtension"]),
     ],
     dependencies: [
         .package(
+            // just for testing: forked from Kumulos/KSCrash which has the Package.swift added from kstenerud/KSCrash so we can import our fork in here with SPM support
             url: "https://github.com/robdick/KSCrash",
             .branch("master")
         ),
@@ -34,6 +35,9 @@ let package = Package(
                 "KSCrash"
             ],
             path: "Sources",
+            exclude: [
+                "Extension"
+            ],
             linkerSettings: [
                 .linkedFramework("UIKit"),
                 .linkedFramework("Foundation"),
@@ -41,6 +45,14 @@ let package = Package(
                 .linkedFramework("MessageUI"),
                 .linkedLibrary("libc++"),
                 .linkedLibrary("libz")
+            ]
+        ),
+        .target(
+            name: "KumulosSDKExtension",
+            path: "Sources",
+            sources: [
+                "Extension",
+                "Shared"
             ]
         )
     ],
