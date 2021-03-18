@@ -14,8 +14,8 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "file:///Users/robdick/dev/KSCrash",
-            .branch("add-swift-package-manifest")
+            url: "https://github.com/robdick/KSCrash",
+            .branch("master")
         ),
     ],
     targets: [
