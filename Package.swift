@@ -14,8 +14,8 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/kstenerud/KSCrash.git",
-            .branch("master")
+            url: "file:///Users/robdick/dev/KSCrash",
+            .branch("add-swift-package-manifest")
         ),
     ],
     targets: [
@@ -35,7 +35,6 @@ let package = Package(
             ],
             path: "Sources",
             linkerSettings: [
-                .linkedLibrary("KSCrash/iOS"),
                 .linkedFramework("UIKit"),
                 .linkedFramework("Foundation"),
                 .linkedFramework("SystemConfiguration"),
