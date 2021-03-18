@@ -34,7 +34,6 @@ let package = Package(
         .target(
             name: "KumulosSdkSwift",
             dependencies: [
-                "ObjCSources",
                 "KSCrash"
             ],
             path: "Sources",
