@@ -20,15 +20,27 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "ObjCSources",
+            dependencies: [],
+            path: "ObjCSources",
+            exclude: ["Sources"],
+            cSettings: [
+                .headerSearchPath("ObjCSources"),
+                .headerSearchPath("ObjCSources/Extension"),
+            ],
+            linkerSettings: [
+                .linkedFramework("UIKit", .when(platforms: [.iOS])),
+            ]
+        ),
+        .target(
             name: "KumulosSdkSwift",
             dependencies: [
+                "ObjCSources",
                 "KSCrash"
             ],
             path: "Sources",
-            exclude: [
-                "Extension",
-            ],
             linkerSettings: [
+                .linkedFramework("UIKit"),
                 .linkedFramework("Foundation"),
                 .linkedFramework("SystemConfiguration"),
                 .linkedFramework("MessageUI"),
