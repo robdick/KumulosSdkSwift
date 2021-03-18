@@ -24,6 +24,9 @@ let package = Package(
             name: "ObjCSources",
             dependencies: [],
             path: "ObjCSources",
+            cSettings: [
+                  .headerSearchPath("include"),
+            ],
             linkerSettings: [
                 .linkedFramework("UIKit"),
             ]
