@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "KumulosSdk",
-            targets: ["KumulosSdk", "KumulosSdkExtension"]),
+            targets: ["KumulosSdk"]),
     ],
     dependencies: [
         .package(
@@ -37,25 +37,6 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "Extension"
-            ]
-        ),
-         .target(
-            name: "KumulosSdkExtension",
-            dependencies: [
-                "KumulosSdkObjC"
-            ],
-            path: "Sources",
-            sources: [
-                "Extension/CategoryHelper.swift",
-                "Extension/KumulosNotificationService.swift",
-                "Shared/AnalyticsHelper.swift",
-                "Shared/AppGroupsHelper.swift",
-                "Shared/KeyValPersistenceHelper.swift",
-                "Shared/KSHttp.swift",
-                "Shared/KumulosHelper.swift",
-                "Shared/KumulosUserDefaultsKey.swift",
-                "Shared/PendingNotification.swift",
-                "Shared/PendingNotificationHelper.swift",
             ]
         )
     ],
