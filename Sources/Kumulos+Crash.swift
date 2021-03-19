@@ -7,7 +7,12 @@
 //
 
 import Foundation
+
+#if SWIFT_PACKAGE
+import KSCrash_Installations
+#else
 import KSCrash
+#endif
 
 public extension Kumulos {
 
