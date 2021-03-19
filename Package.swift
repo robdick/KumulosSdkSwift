@@ -38,6 +38,14 @@ let package = Package(
             exclude: [
                 "Extension"
             ]
+        ),
+         .target(
+            name: "KumulosSdkExtension",
+            dependencies: [
+                "KumulosSdkObjC",
+                "KSCrash"
+            ],
+            path: "Sources/Extension"
         )
     ],
     swiftLanguageVersions: [.v5]
