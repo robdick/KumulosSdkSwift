@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(
             name: "KumulosSdk",
-            targets: ["KumulosSdk"]),
+            targets: ["KumulosSdk", "KumulosSdkExtension"]),
     ],
     dependencies: [
         .package(
