@@ -42,10 +42,21 @@ let package = Package(
          .target(
             name: "KumulosSdkExtension",
             dependencies: [
-                "KumulosSdkObjC",
-                "KSCrash"
+                "KumulosSdkObjC"
             ],
-            path: "Sources/Extension"
+            path: "Sources",
+            sources: [
+                "Extension/CategoryHelper.swift",
+                "Extension/KumulosNotificationService.swift",
+                "Shared/AnalyticsHelper.swift",
+                "Shared/AppGroupsHelper.swift",
+                "Shared/KeyValPersistenceHelper.swift",
+                "Shared/KSHttp.swift",
+                "Shared/KumulosHelper.swift",
+                "Shared/KumulosUserDefaultsKey.swift",
+                "Shared/PendingNotification.swift",
+                "Shared/PendingNotificationHelper.swift",
+            ]
         )
     ],
     swiftLanguageVersions: [.v5]
