@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import KSCrash_Installations
+import KSCrash
 
 public extension Kumulos {
 

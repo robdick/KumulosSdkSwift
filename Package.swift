@@ -23,7 +23,7 @@ let package = Package(
         .target(
             name: "KumulosSdkObjC",
             dependencies: [],
-            path: "SourcesObjC",
+            path: "KumulosSdkObjC",
             cSettings: [
                   .headerSearchPath("include"),
             ]
