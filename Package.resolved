@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "KSCrash",
+        "repositoryURL": "https://github.com/robdick/KSCrash",
+        "state": {
+          "branch": "master",
+          "revision": "be1d0e87eff92bcf4bead03d80db390f613eb16c",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
